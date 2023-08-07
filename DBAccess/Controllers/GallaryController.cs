@@ -22,13 +22,13 @@ namespace DBAccess.Controllers
             _repo = repo;   
         }
 
-        [Route("GetImagesByGroup/{GroupId}")]
+        [Route("GetImagesByGroup/{GroupName}")]
         [HttpPost]
-        public IActionResult GetImagesByGroup(Guid GroupId)
+        public IActionResult GetImagesByGroup(string groupName)
         {
             try
             {
-                return Ok(_repo.GetGallaryPhotos(GroupId));
+                return Ok(_repo.GetGallaryPhotos(groupName));
             }
             catch (Exception e)
             {
