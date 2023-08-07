@@ -23,16 +23,16 @@ namespace DBAccess.IRepositoryImplementations
             _sSOContext = context;
         }
 
-        public ApiResponse GetGallaryPhotos(Guid GroupId)
+        public ApiResponse GetGallaryPhotos(string groupName)
         {
             response = new ApiResponse();
             try
             {
 
-                var list = _sSOContext.Gallary.Where(x => x.GroupId == GroupId).Select(x => new GallaryViewModel
+                var list = _sSOContext.Gallary.Where(x => x.Active==true&&x.GroupName.ToLower().Trim()==groupName.ToLower().Trim()).Select(x => new GallaryViewModel
                 {
                     order = x.order,
-                    GroupId = x.GroupId,
+                    //GroupId = x.GroupId,
                     Active = x.Active,
                     CreatedOn = x.CreatedOn,
                     FileName = x.FileName,
@@ -59,23 +59,29 @@ namespace DBAccess.IRepositoryImplementations
             try
             {
 
-                _sSOContext.Gallary.Add(new Gallary
+               var ent= _sSOContext.Gallary.Add(new Gallary
                 {
                     Active = gallary.Active,
                     CreatedOn = DateTime.Now.Date,
                     FileName = gallary.FileName,
-                    GroupId = gallary.GroupId,
+                    //GroupId = gallary.GroupId,
                     GroupName = gallary.GroupName,
                     order = gallary.order,
+                    Id=Guid.NewGuid()
                 });
 
-                var template = _sSOContext.Templetes.Where(x => x.Active == true && x.Page == gallary.GroupName.Trim().ToLower()).FirstOrDefault();
-                if (template != null)
+                if (gallary.Active)
                 {
-                    template.GallaryGroupId = gallary.GroupId;
+                    var template = _sSOContext.Gallary.Where(x => x.Active == true && x.GroupName.ToLower().Trim() == gallary.GroupName.Trim().ToLower() && x.Id != ent.Entity.Id).ToList();
+
+                    foreach (var templateItem in template)
+                    {
+                        templateItem.Active = false;
+
+                        _sSOContext.Update(templateItem);
+                    }
                 }
                 _sSOContext.SaveChanges();
-
                 response.Success = true;
                 response.Message = Constants.Messages.PHOTOADDED;
             }

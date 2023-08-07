@@ -5,7 +5,7 @@ namespace DBAccess.IRepos
     public interface IGallary
     {
         ApiResponse SetGallaryPhotos(GallaryViewModel gallaries);
-        ApiResponse GetGallaryPhotos(Guid GroupId);
+        ApiResponse GetGallaryPhotos(string groupName);
         
     }
 }

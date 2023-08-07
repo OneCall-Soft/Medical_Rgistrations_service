@@ -13,7 +13,7 @@ namespace DBAccess.Models
         public string? TemplateName { get; set; }
         public string Page { get; set; }
         public bool Active { get; set; }
-        public Guid? GallaryGroupId  { get; set; }
+        //public Guid? GallaryGroupId  { get; set; }
         public DateTime? CreatedOn  { get; set; }
         public DateTime? ModifiedOn  { get; set; }
     }
