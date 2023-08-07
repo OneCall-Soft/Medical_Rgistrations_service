@@ -42,7 +42,7 @@ namespace Medical_Rgistrations.IRepos
                     HtmlData = x.HtmlContent,
                     Id = x.Id,
                     TemplateName = x.TemplateName,
-                    GallaryGroup = x.GallaryGroupId,
+                    //GallaryGroup = x.GallaryGroupId,
                     Page = x.Page
                 }).ToList());
 
@@ -125,7 +125,7 @@ namespace Medical_Rgistrations.IRepos
                         if (toBeDeactivated != null)
                         {
                             toBeDeactivated.Active = false;
-                            master.GallaryGroupId = toBeDeactivated.GallaryGroupId;
+                            //master.GallaryGroupId = toBeDeactivated.GallaryGroupId;
 
                             _sSOContext.Update(toBeDeactivated);
                         }
@@ -160,7 +160,7 @@ namespace Medical_Rgistrations.IRepos
                     htmlData.HtmlData = master.HtmlContent;
                     htmlData.Id = master.Id;
                     htmlData.TemplateName = master.TemplateName;
-                    htmlData.GallaryGroup = master.GallaryGroupId;
+                    //htmlData.GallaryGroup = master.GallaryGroupId;
                     htmlData.Page = master.Page;
 
                     response.Success = true;
