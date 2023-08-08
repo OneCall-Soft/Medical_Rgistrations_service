@@ -9,6 +9,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json;
 using static System.Runtime.InteropServices.JavaScript.JSType;
+using DashboardLink = DBAccess.ViewModels.DashboardLink;
+using DBDashboardLink = DBAccess.Models.DashboardLink;
 using IHostingEnvironment = Microsoft.AspNetCore.Hosting.IHostingEnvironment;
 
 namespace Medical_Rgistrations.IRepos
@@ -36,21 +38,21 @@ namespace Medical_Rgistrations.IRepos
 
                 var masterList = _sSOContext.Templetes.Where(x => x.Page == page.ToLower().Trim()).ToList();
 
-                contactTemplates.AddRange(masterList.Select(x => new MyHtmlContent
+                if (masterList.Count > 0)
                 {
-                    Active = x.Active,
-                    HtmlData = x.HtmlContent,
-                    Id = x.Id,
-                    TemplateName = x.TemplateName,
-                    //GallaryGroup = x.GallaryGroupId,
-                    Page = x.Page
-                }).ToList());
+                    contactTemplates.AddRange(masterList.Select(x => new MyHtmlContent
+                    {
+                        Active = x.Active,
+                        HtmlData = x.HtmlContent,
+                        Id = x.Id,
+                        TemplateName = x.TemplateName,
+                        //GallaryGroup = x.GallaryGroupId,
+                        Page = x.Page
+                    }).ToList());
 
-
-                response.Success = true;
-                response.Data = JsonConvert.SerializeObject(contactTemplates);
-
-
+                    response.Success = true;
+                    response.Data = JsonConvert.SerializeObject(contactTemplates);
+                }
             }
             catch (Exception e)
             {
@@ -177,6 +179,126 @@ namespace Medical_Rgistrations.IRepos
             return response;
         }
 
+        public ApiResponse SetLinkTemplate(DashboardLink dashboardLink)
+        {
+            response = new ApiResponse();
+            try
+            {
+                var dashboard = new DBDashboardLink
+                {
+                    Active = dashboardLink.Active,
+                    Id = Guid.NewGuid(),
+                    Link = dashboardLink.Link,
+                    LinkName = dashboardLink.LinksName,
+                    Position = dashboardLink.Position,
+                    TemplateName = dashboardLink.TemplateName
+                };
+
+                var master = _sSOContext.DashboardLink.Add(dashboard);
+
+                if (master != null)
+                {
+                    //Desctivate other template
+                    var toBeDeactivated = _sSOContext.DashboardLink.Where(x => x.Id != dashboard.Id
+                    && x.Position.ToLower().Trim() == dashboard.Position.ToLower().Trim()).ToList();
+
+                    foreach (var item in toBeDeactivated)
+                    {
+                        item.Active = false;
+                    }
+                }
+
+                _sSOContext.SaveChanges();
+
+                response.Message = Constants.Messages.LINKADDED;
+                response.Success = true;
+
+            }
+            catch (Exception e)
+            {
+                response.Success = false;
+                response.Message = e.Message;
+            }
+            return response;
+        }
+
+        public ApiResponse GetLinkTemplates(string Linkposition)
+        {
+            response = new ApiResponse();
+            try
+            {
+                var DashboardTemlate = new DashboardLink();
+
+                var masterList = _sSOContext.DashboardLink.Where(x => x.Position == Linkposition.ToLower().Trim()).FirstOrDefault();
+
+                if (masterList != null)
+                {
+                    DashboardTemlate.Active = masterList.Active;
+                    DashboardTemlate.TemplateName = masterList.TemplateName;
+                    DashboardTemlate.LinksName = masterList.LinkName;
+                    DashboardTemlate.Link = masterList.Link;
+                    DashboardTemlate.Id = masterList.Id;
+                    DashboardTemlate.Position = masterList.Position;
+                }
+                response.Success = true;
+                response.Data = JsonConvert.SerializeObject(DashboardTemlate);
+            }
+            catch (Exception e)
+            {
+                response.Success = false;
+                response.Message = e.Message;
+            }
+
+            return response;
+        }
+
+        public ApiResponse GetDashboardLink()
+        {
+            response = new ApiResponse();
+            try
+            {
+                var DashboardTemlate = new DashboardLinkView();
+
+                var downloadLinks= _sSOContext.DashboardLink.Where(x => x.Active == true && x.Position == "download").FirstOrDefault().Link.Split('#').ToList();
+                var downloadLinksName= _sSOContext.DashboardLink.Where(x => x.Active == true && x.Position == "download").FirstOrDefault().LinkName.Split('#').ToList();
+                var notifyLinks = _sSOContext.DashboardLink.Where(x => x.Active == true && x.Position == "notification").FirstOrDefault().Link.Split('#').ToList();
+                var notifyLinksName = _sSOContext.DashboardLink.Where(x => x.Active == true && x.Position == "notification").FirstOrDefault().LinkName.Split('#').ToList();
+                var footer1 = _sSOContext.DashboardLink.Where(x => x.Active == true && x.Position == "footer1").FirstOrDefault().Link.Split('#').ToList();
+                var footer1Name = _sSOContext.DashboardLink.Where(x => x.Active == true && x.Position == "footer1").FirstOrDefault().LinkName.Split('#').ToList();
+                var footer2 = _sSOContext.DashboardLink.Where(x => x.Active == true && x.Position == "footer2").FirstOrDefault().Link.Split('#').ToList();
+                var footer2Name = _sSOContext.DashboardLink.Where(x => x.Active == true && x.Position == "footer2").FirstOrDefault().LinkName.Split('#').ToList();
+
+                for (int i = 0; i < downloadLinks.Count; i++)
+                {
+                    DashboardTemlate.DownloadLink.Add(new AncorLink { Name = downloadLinksName[i], link = downloadLinks[i] });
+                }
+                for (int i = 0; i < notifyLinks.Count; i++)
+                {
+                    DashboardTemlate.NotificationLink.Add(new AncorLink { Name = notifyLinksName[i], link = notifyLinks[i] });
+                }
+
+                for (int i = 0; i < footer1.Count; i++)
+                {
+                    DashboardTemlate.FooterLink1.Add(new AncorLink { Name = footer1Name[i], link = footer1[i] });
+                }
+
+                for (int i = 0; i < footer1.Count; i++)
+                {
+                    DashboardTemlate.FooterLink2.Add(new AncorLink { Name = footer2Name[i], link = footer2[i] });
+                }
+
+
+                response.Success = true;
+                response.Data = JsonConvert.SerializeObject(DashboardTemlate);
+            }
+            catch (Exception e)
+            {
+                response.Success = false;
+                response.Message = e.Message;
+            }
+
+            return response;
+        }
     }
 
 

@@ -41,6 +41,71 @@ namespace DBAccess.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError, e.Message);
             }
         }
+
+        [Route("SetLinkTemplate")]
+        [HttpPost]
+        public IActionResult SetLinkTemplate(DashboardLink dashboardLink)
+        {
+            try
+            {
+                var inserted = _repo.SetLinkTemplate(dashboardLink);
+
+                if (inserted.Success)
+                {
+                    return NoContent();
+                }
+
+                return Ok(inserted);
+            }
+            catch (Exception e)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, e.Message);
+            }
+        }
+        [Route("GetDashboardLinks")]
+        [HttpPost]
+        public IActionResult GetDashboardLinks() {
+            try
+            {
+                var templates = _repo.GetDashboardLink();
+
+                return Ok(templates);
+
+            }
+            catch (Exception e)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, e.Message);
+            }
+        }
+
+        [Route("GetLinkTemplates/{page}")]
+        [HttpPost]
+        public IActionResult GetLinkTemplates(string page)
+        {
+            try
+            {
+                var templates = _repo.GetLinkTemplates(page);
+
+                if (templates.Data == null && templates.Success)
+                {
+                    return NoContent();
+                }
+
+                if (templates.Data == null && !templates.Success)
+                {
+                    return BadRequest(templates.Message);
+                }
+
+                return Ok(templates);
+
+            }
+            catch (Exception e)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, e.Message);
+            }
+        }
+
+
         [Route("GetTemplates")]
         [HttpPost]
         public IActionResult GetTemplates(string page)

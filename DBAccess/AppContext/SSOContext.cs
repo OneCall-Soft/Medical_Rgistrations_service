@@ -31,11 +31,10 @@ namespace DBAccess.AppContext
         public DbSet<Genders> Gender { get; set; }
         public DbSet<UserInfo> Users { get; set; }
         public DbSet<CompanyInfo> Company { get; set; }
-        //public DbSet<ContactPageTemplete> ContactTemplete { get; set; }
-        //public DbSet<CoursePageTemplete> CourseTemplete { get; set; }
         public DbSet<PageTemplete> Templetes { get; set; }
         public DbSet<Faculty> Faculty { get; set; }
         public DbSet<Gallary> Gallary { get; set; }
+        public DbSet<DashboardLink> DashboardLink { get; set; }
     }
 
     public static class ModelBinderExtension {
