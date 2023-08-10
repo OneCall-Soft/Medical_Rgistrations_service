@@ -122,7 +122,7 @@ namespace Medical_Rgistrations.IRepos
 
                     if (htmlContent.Active)
                     {
-                        var toBeDeactivated = _sSOContext.Templetes.Where(x => x.Active == true && x.Page == htmlContent.Page.Trim().ToLower()).FirstOrDefault();
+                        var toBeDeactivated = _sSOContext.Templetes.Where(x => x.Active == true && x.Page == htmlContent.Page.Trim().ToLower() && x.Id != master.Id).FirstOrDefault();
 
                         if (toBeDeactivated != null)
                         {
@@ -228,20 +228,43 @@ namespace Medical_Rgistrations.IRepos
             try
             {
                 var DashboardTemlate = new DashboardLink();
+                var DashboardTemlateList = new List<DashboardLink>();
 
-                var masterList = _sSOContext.DashboardLink.Where(x => x.Position == Linkposition.ToLower().Trim()).FirstOrDefault();
-
-                if (masterList != null)
+                if (!Linkposition.Contains("na"))
                 {
-                    DashboardTemlate.Active = masterList.Active;
-                    DashboardTemlate.TemplateName = masterList.TemplateName;
-                    DashboardTemlate.LinksName = masterList.LinkName;
-                    DashboardTemlate.Link = masterList.Link;
-                    DashboardTemlate.Id = masterList.Id;
-                    DashboardTemlate.Position = masterList.Position;
+                    var masterList = _sSOContext.DashboardLink.Where(x => x.Position == Linkposition.ToLower().Trim()).FirstOrDefault();
+
+                    if (masterList != null)
+                    {
+                        DashboardTemlate.Active = masterList.Active;
+                        DashboardTemlate.TemplateName = masterList.TemplateName;
+                        DashboardTemlate.LinksName = masterList.LinkName;
+                        DashboardTemlate.Link = masterList.Link;
+                        DashboardTemlate.Id = masterList.Id;
+                        DashboardTemlate.Position = masterList.Position;
+                    }
+                    response.Success = true;
+                    response.Data = JsonConvert.SerializeObject(DashboardTemlate);
                 }
-                response.Success = true;
-                response.Data = JsonConvert.SerializeObject(DashboardTemlate);
+                else
+                {
+                    var masterList = _sSOContext.DashboardLink.ToList();
+
+                    foreach (var master in masterList)
+                    {
+                        DashboardTemlateList.Add(new DashboardLink
+                        {
+                            Id = master.Id,
+                            Active = master.Active,
+                            TemplateName = master.TemplateName,
+                            LinksName = master.LinkName,
+                            Link = master.Link,
+                            Position = master.Position
+                        });
+                    }
+                    response.Success = true;
+                    response.Data = JsonConvert.SerializeObject(DashboardTemlateList);
+                }
             }
             catch (Exception e)
             {
@@ -259,37 +282,48 @@ namespace Medical_Rgistrations.IRepos
             {
                 var DashboardTemlate = new DashboardLinkView();
 
-                var downloadLinks= _sSOContext.DashboardLink.Where(x => x.Active == true && x.Position == "download").FirstOrDefault().Link.Split('#').ToList();
-                var downloadLinksName= _sSOContext.DashboardLink.Where(x => x.Active == true && x.Position == "download").FirstOrDefault().LinkName.Split('#').ToList();
-                var notifyLinks = _sSOContext.DashboardLink.Where(x => x.Active == true && x.Position == "notification").FirstOrDefault().Link.Split('#').ToList();
-                var notifyLinksName = _sSOContext.DashboardLink.Where(x => x.Active == true && x.Position == "notification").FirstOrDefault().LinkName.Split('#').ToList();
-                var footer1 = _sSOContext.DashboardLink.Where(x => x.Active == true && x.Position == "footer1").FirstOrDefault().Link.Split('#').ToList();
-                var footer1Name = _sSOContext.DashboardLink.Where(x => x.Active == true && x.Position == "footer1").FirstOrDefault().LinkName.Split('#').ToList();
-                var footer2 = _sSOContext.DashboardLink.Where(x => x.Active == true && x.Position == "footer2").FirstOrDefault().Link.Split('#').ToList();
-                var footer2Name = _sSOContext.DashboardLink.Where(x => x.Active == true && x.Position == "footer2").FirstOrDefault().LinkName.Split('#').ToList();
-
-                for (int i = 0; i < downloadLinks.Count; i++)
+                if (_sSOContext.DashboardLink.Count() > 0)
                 {
-                    DashboardTemlate.DownloadLink.Add(new AncorLink { Name = downloadLinksName[i], link = downloadLinks[i] });
-                }
-                for (int i = 0; i < notifyLinks.Count; i++)
-                {
-                    DashboardTemlate.NotificationLink.Add(new AncorLink { Name = notifyLinksName[i], link = notifyLinks[i] });
-                }
+                    var downloadLinks = _sSOContext.DashboardLink.Where(x => x.Active == true && x.Position == "download").FirstOrDefault();
+                    var downloadLinksName = _sSOContext.DashboardLink.Where(x => x.Active == true && x.Position == "download").FirstOrDefault();
 
-                for (int i = 0; i < footer1.Count; i++)
-                {
-                    DashboardTemlate.FooterLink1.Add(new AncorLink { Name = footer1Name[i], link = footer1[i] });
-                }
-
-                for (int i = 0; i < footer1.Count; i++)
-                {
-                    DashboardTemlate.FooterLink2.Add(new AncorLink { Name = footer2Name[i], link = footer2[i] });
-                }
+                    var notifyLinks = _sSOContext.DashboardLink.Where(x => x.Active == true && x.Position == "notification").FirstOrDefault();
+                    var notifyLinksName = _sSOContext.DashboardLink.Where(x => x.Active == true && x.Position == "notification").FirstOrDefault();
 
 
-                response.Success = true;
-                response.Data = JsonConvert.SerializeObject(DashboardTemlate);
+                    var footer1 = _sSOContext.DashboardLink.Where(x => x.Active == true && x.Position == "quicklink").FirstOrDefault();
+                    var footer1Name = _sSOContext.DashboardLink.Where(x => x.Active == true && x.Position == "quicklink").FirstOrDefault();
+
+                    var footer2 = _sSOContext.DashboardLink.Where(x => x.Active == true && x.Position == "importantlink").FirstOrDefault();
+                    var footer2Name = _sSOContext.DashboardLink.Where(x => x.Active == true && x.Position == "importantlink").FirstOrDefault();
+
+                    if (downloadLinks != null)
+                        for (int i = 0; i < downloadLinks.Link.Split('#').ToList().Count; i++)
+                        {
+                            DashboardTemlate.DownloadLink.Add(new AncorLink { Name = downloadLinksName.LinkName.Split('#').ToList()[i], link = downloadLinks.Link.Split('#').ToList()[i] });
+                        }
+                    if (notifyLinks != null)
+                        for (int i = 0; i < notifyLinks.Link.Split('#').ToList().Count; i++)
+                        {
+                            DashboardTemlate.NotificationLink.Add(new AncorLink { Name = notifyLinksName.LinkName.Split('#').ToList()[i], link = notifyLinks.Link.Split('#').ToList()[i] });
+                        }
+
+                    if (footer1 != null)
+                        for (int i = 0; i < footer1.Link.Split('#').ToList().Count; i++)
+                        {
+                            DashboardTemlate.FooterLink1.Add(new AncorLink { Name = footer1Name.LinkName.Split('#').ToList()[i], link = footer1.Link.Split('#').ToList()[i] });
+                        }
+
+                    if (footer2 != null)
+                        for (int i = 0; i < footer1.Link.Split('#').ToList().Count; i++)
+                        {
+                            DashboardTemlate.FooterLink2.Add(new AncorLink { Name = footer2Name.LinkName.Split('#').ToList()[i], link = footer2.Link.Split('#').ToList()[i] });
+                        }
+
+
+                    response.Success = true;
+                    response.Data = JsonConvert.SerializeObject(DashboardTemlate);
+                }
             }
             catch (Exception e)
             {
